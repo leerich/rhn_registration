@@ -1,22 +1,29 @@
-Role Name
+rhn_subscription
 =========
 
-A brief description of the role goes here.
+Basic role that does not utilize the subscription-manager module (significantly slower at large scale)
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+Red Hat account with the appropriate entitlements for desired red hat products
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+rhn_user
+- The user account you want to use when registering to RHN
+
+rhn_password
+- Password you would like to use. I'd recommend stashing this in a vault file.
+
+rhn_product
+- The product you would like to register (i.e. OpenShift, Satellite, Red Hat Enterprise Linux, etc)
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+No dependencies
 
 Example Playbook
 ----------------
@@ -25,7 +32,7 @@ Including an example of how to use your role (for instance, with variables passe
 
     - hosts: servers
       roles:
-         - { role: username.rolename, x: 42 }
+         - { role: josh-springer.rhn_registration, rhn_user: foo }
 
 License
 -------
@@ -35,4 +42,4 @@ BSD
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Josh Springer
