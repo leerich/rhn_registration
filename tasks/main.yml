@@ -1,0 +1,27 @@
+---
+# tasks file for rhn_registration
+- name: registration | Register machine with RHN
+  command: /usr/bin/subscription-manager register --username={{ rhn_user }} --password={{ rhn_password }}
+  no_log: true
+  tags:
+    - rhn
+  ignore_errors: yes
+
+- name: registration | Get Product pool ID
+  shell: /usr/bin/subscription-manager list --all --available --matches="*{{ rhn_product }}*" | awk '/Pool ID/ {print $3}' | head -1
+  tags:
+    - rhn
+  register: pool_id
+  ignore_errors: yes
+  changed_when: false
+
+- debug:
+    msg: "Pool ID being used is {{ pool_id.stdout }}. This is for your record"
+
+
+#Attaching the system to the right Pool
+- name: registration | Attach machine with RHN Pool ID
+  command: /usr/bin/subscription-manager attach --pool={{ pool_id.stdout }}
+  tags:
+    - rhn
+  ignore_errors: yes
