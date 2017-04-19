@@ -23,7 +23,7 @@
     msg: The "rhn_product" variable has not been defined and is required for this role.
   when: rhn_product is not defined
 
-# Subscribe as a user, but does not yet attach a subscription-manager.
+# Subscribe as a user, but does not yet attach a pool yet.
 # This way, we can hide the user variables being passed as it is protected
 # via the Ansible module vs. a command or shell module.
 - name: registration | Register the machine with RHN
