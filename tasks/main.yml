@@ -53,7 +53,7 @@
 
 # Fail the playbook if we're unable to find either an available pool_id
 # or a consumed id.
-- registration | Fail playbook if no Pool IDs are available and if none are consumed
+- name: registration | Fail playbook if no Pool IDs are available and if none are consumed
   fail:
     msg: "Unable to find a matching Pool ID in available or consumed pools"
   when: pool_id.stdout == '' and pool_id_attached is defined and pool_id_attached.stdout == ''
