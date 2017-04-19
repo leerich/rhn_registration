@@ -1,7 +1,7 @@
 rhn_subscription
 =========
 
-Basic role that does not utilize the subscription-manager module (significantly slower at large scale)
+This role is used for subscribing machines to the Red Hat Network.
 
 Requirements
 ------------
