@@ -59,10 +59,6 @@
   when: pool_id.stdout == '' and pool_id_attached is defined and pool_id_attached.stdout == ''
 
 - debug:
-    msg: "Pool ID being used is {{ pool_id.stdout }}. This is for your record"
-  when: pool_id.stdout != ''
-
-- debug:
     msg: "The Pool ID being attached is {{ pool_id.stdout }}"
   when: pool_id is defined and pool_id.stdout != ''
 
