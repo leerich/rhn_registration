@@ -38,14 +38,14 @@
 
 # Find available Pool IDs matching the prefered product
 - name: registration | Get Product pool ID
-  shell: /usr/bin/subscription-manager list --all --available --matches="*{{ rhn_product }}*" | awk '/Pool ID/ {print $3}' | head -1
+  shell: /usr/bin/subscription-manager list --all --available --matches="*{{ rhn_product }}*" --pool-only | head -1
   register: pool_id
   ignore_errors: yes
   changed_when: false
 
 # If we're unable to find a product pool ID, see if one is already consumed
 - name: registration | If finding an available pool is not found - check to see if an existing pool ID is already attached.
-  command: subscription-manager list --consumed --matches="*{{ rhn_product }}*" | awk '/Pool ID/ {print $3}' | head -1
+  command: subscription-manager list --consumed --matches="*{{ rhn_product }}*" --pool-only | head -1
   register: pool_id_attached
   ignore_errors: yes
   changed_when: false
