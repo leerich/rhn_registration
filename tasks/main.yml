@@ -1,27 +1,67 @@
 ---
 # tasks file for rhn_registration
-- name: registration | Register machine with RHN
-  command: /usr/bin/subscription-manager register --username={{ rhn_user }} --password={{ rhn_password }}
-  no_log: true
-  tags:
-    - rhn
-  ignore_errors: yes
 
+# These fail tasks check for system state and defined variables
+# immediately fail playbook if the checks fails
+- name: registration | Check if user is using RHEL
+  fail:
+    msg: "This role is only supported for Red Hat hosts"
+  when: ansible_distribution != 'RedHat'
+
+- name: registration | Check if RHN_USER is defined
+  fail:
+    msg: The "rhn_user" variable has not been defined and is required for this role.
+  when: rhn_user is not defined
+
+- name: registration | Check if RHN_PASSWORD is defined
+  fail:
+    msg: The "rhn_password" variable has not been defined and is required for this role.
+  when: rhn_password is not defined
+
+- name: registration | Check if RHN_PRODUCT is defined
+  fail:
+    msg: The "rhn_product" variable has not been defined and is required for this role.
+  when: rhn_product is not defined
+
+# Subscribe as a user, but does not yet attach a subscription-manager.
+# This way, we can hide the user variables being passed as it is protected
+# via the Ansible module vs. a command or shell module.
+- name: registration | Register the machine with RHN
+  redhat_subscription:
+    username: "{{ rhn_user }}"
+    password: "{{ rhn_password }}"
+    autosubscribe: false
+  register: subscription_result
+  until: subscription_result | succeeded
+  retries: 10
+  delay: 5
+
+# Find available Pool IDs matching the prefered product
 - name: registration | Get Product pool ID
   shell: /usr/bin/subscription-manager list --all --available --matches="*{{ rhn_product }}*" | awk '/Pool ID/ {print $3}' | head -1
-  tags:
-    - rhn
   register: pool_id
   ignore_errors: yes
   changed_when: false
 
+# If we're unable to find a product pool ID, see if one is already consumed
+- name: registration | If finding an available pool is not found - check to see if an existing pool ID is already attached.
+  command: subscription-manager list --consumed --matches="*{{ rhn_product }}*" | awk '/Pool ID/ {print $3}' | head -1
+  register: pool_id_attached
+  ignore_errors: yes
+  changed_when: false
+  when: pool_id.stdout == ''
+
+# Fail the playbook if we're unable to find either an available pool_id
+# or a consumed id.
+-  fail:
+    msg: "Unable to find a matching Pool ID in available or consumed pools"
+  when: pool_id.stdout == '' and pool_id_attached is defined and pool_id_attached.stdout == ''
+
 - debug:
     msg: "Pool ID being used is {{ pool_id.stdout }}. This is for your record"
 
-
-#Attaching the system to the right Pool
+#Attaching the system to the right pool once we've made it past the above checks
 - name: registration | Attach machine with RHN Pool ID
-  command: /usr/bin/subscription-manager attach --pool={{ pool_id.stdout }}
-  tags:
-    - rhn
+  command: /usr/bin/subscription-manager subscribe --pool={{ pool_id.stdout }}
   ignore_errors: yes
+  when: pool_id.stdout != ''
