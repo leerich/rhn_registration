@@ -53,12 +53,22 @@
 
 # Fail the playbook if we're unable to find either an available pool_id
 # or a consumed id.
--  fail:
+- registration | Fail playbook if no Pool IDs are available and if none are consumed
+  fail:
     msg: "Unable to find a matching Pool ID in available or consumed pools"
   when: pool_id.stdout == '' and pool_id_attached is defined and pool_id_attached.stdout == ''
 
 - debug:
     msg: "Pool ID being used is {{ pool_id.stdout }}. This is for your record"
+  when: pool_id.stdout != ''
+
+- debug:
+    msg: "The Pool ID being attached is {{ pool_id.stdout }}"
+  when: pool_id is defined and pool_id.stdout != ''
+
+- debug:
+    msg: "The machine is already subscribed. The Pool ID being used is {{ pool_id_attached.stdout }}."
+  when: pool_id_attached is defined and  pool_id_attached.stdout != ''
 
 #Attaching the system to the right pool once we've made it past the above checks
 - name: registration | Attach machine with RHN Pool ID
