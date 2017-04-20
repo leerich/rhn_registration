@@ -1,5 +1,7 @@
 ---
 - hosts: localhost
   remote_user: root
-  roles:
-    - rhn_registration
+  tasks:
+    - name: Ping as test - cannot test registration without user credentials
+#  roles:
+#    - rhn_registration
