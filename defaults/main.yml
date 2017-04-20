@@ -1,2 +1,10 @@
 ---
 # defaults file for rhn_registration
+
+## While can can defined the variables here,
+## rhn_user and rhn_password should be defined in a vault encrypted file
+## see http://docs.ansible.com/ansible/playbooks_vault.html
+# rhn_user: 
+# rhn_password:
+
+rhn_product: 
