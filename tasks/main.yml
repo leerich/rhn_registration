@@ -45,26 +45,26 @@
 
 # If we're unable to find a product pool ID, see if one is already consumed
 - name: registration | If finding an available pool is not found - check to see if an existing pool ID is already attached.
-  command: subscription-manager list --consumed --matches="*{{ rhn_product }}*" --pool-only | head -1
+  command: subscription-manager list --consumed  --pool-only | head -1
   register: pool_id_attached
   ignore_errors: yes
   changed_when: false
-  when: pool_id.stdout == ''
+  when: pool_id is undefined 
 
 # Fail the playbook if we're unable to find either an available pool_id
 # or a consumed id.
 - name: registration | Fail playbook if no Pool IDs are available and if none are consumed
   fail:
     msg: "Unable to find a matching Pool ID in available or consumed pools"
-  when: pool_id.stdout == '' and pool_id_attached is defined and pool_id_attached.stdout == ''
+  when: pool_id is undefined and pool_id_attached is undefined
 
 - debug:
     msg: "The Pool ID being attached is {{ pool_id.stdout }}"
-  when: pool_id is defined and pool_id.stdout != ''
+  when: pool_id is defined
 
 - debug:
-    msg: "The machine is already subscribed. The Pool ID being used is {{ pool_id_attached.stdout }}."
-  when: pool_id_attached is defined and  pool_id_attached.stdout != ''
+    msg: "The machine is already subscribed. The Pool ID being used is {{ pool_id_attached.stdout }} ."
+  when: pool_id is undefined and pool_id_attached is defined 
 
 #Attaching the system to the right pool once we've made it past the above checks
 - name: registration | Attach machine with RHN Pool ID
@@ -74,4 +74,4 @@
   until: task_result.rc == 0
   retries: 10
   delay: 1
-  when: pool_id.stdout != ''
+  when: pool_id is defined
