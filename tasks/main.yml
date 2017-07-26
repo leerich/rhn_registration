@@ -69,5 +69,9 @@
 #Attaching the system to the right pool once we've made it past the above checks
 - name: registration | Attach machine with RHN Pool ID
   command: /usr/bin/subscription-manager attach --pool={{ pool_id.stdout }}
-  ignore_errors: yes
+  ignore_errors: no 
+  register: task_result
+  until: task_result.rc == 0
+  retries: 10
+  delay: 1
   when: pool_id.stdout != ''
