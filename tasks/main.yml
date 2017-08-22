@@ -4,7 +4,7 @@
 - name: rhn_registration | main | Check if user is using RHEL
   assert:
     that: "ansible_distribution == 'RedHat'"
-    
+
 - name: rhn_registration | main | Configure Red Hat subscirption manager
   template:
     src: rhsm.conf.j2
@@ -76,4 +76,4 @@
   delay: 1
   failed_when: false
   when:
-    - (pool_id.stdout != '' and pool_id_attached == '') or (rhn_static_pool_id is defined and rhn_pool_id not in pool_id_attached.stdout_lines)
+    - (pool_id.stdout != '' and pool_id_attached.stdout == '') or (rhn_static_pool_id is defined and rhn_pool_id not in pool_id_attached.stdout_lines)
