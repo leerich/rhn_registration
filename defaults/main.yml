@@ -4,7 +4,16 @@
 ## While can can defined the variables here,
 ## rhn_user and rhn_password should be defined in a vault encrypted file
 ## see http://docs.ansible.com/ansible/playbooks_vault.html
-# rhn_user: 
-# rhn_password:
 
-rhn_product: 
+rhn_product: ''
+rhn_user: ''
+rhn_password: ''
+
+# Enable subscription clean if you want to clear out ALL
+# current subscriptions at the begining of the playbook
+rhn_subscription_clean: false
+
+# Optionally define Pool ID below. If you set this statically, it will
+# override any dynamic searching and add to any existing machines, regardless
+# of if there are already attached Pool IDs
+rhn_pool_id: ''

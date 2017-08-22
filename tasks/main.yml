@@ -1,31 +1,16 @@
 ---
 # tasks file for rhn_registration
 
-# These fail tasks check for system state and defined variables
-# immediately fail playbook if the checks fails
 - name: registration | Check if user is using RHEL
-  fail:
-    msg: "This role is only supported for Red Hat hosts"
-  when: ansible_distribution != 'RedHat'
+  assert:
+    that: "ansible_distribution == 'RedHat'"
 
-- name: registration | Check if RHN_USER is defined
-  fail:
-    msg: The "rhn_user" variable has not been defined and is required for this role.
-  when: rhn_user is not defined
+- name: registration | Clean out all valid RHN subscriptions
+  command: /usr/bin/subscription-manager clean
+  when:
+    - rhn_subscription_clean is defined
+    - rhn_subscription_clean
 
-- name: registration | Check if RHN_PASSWORD is defined
-  fail:
-    msg: The "rhn_password" variable has not been defined and is required for this role.
-  when: rhn_password is not defined
-
-- name: registration | Check if RHN_PRODUCT is defined
-  fail:
-    msg: The "rhn_product" variable has not been defined and is required for this role.
-  when: rhn_product is not defined
-
-# Subscribe as a user, but does not yet attach a pool yet.
-# This way, we can hide the user variables being passed as it is protected
-# via the Ansible module vs. a command or shell module.
 - name: registration | Register the machine with RHN
   redhat_subscription:
     username: "{{ rhn_user }}"
@@ -36,42 +21,57 @@
   retries: 10
   delay: 5
 
-# Find available Pool IDs matching the prefered product
-- name: registration | Get Product pool ID
-  shell: /usr/bin/subscription-manager list --all --available --matches="*{{ rhn_product }}*" --pool-only | head -1
+- name: registration | Find an available Pool ID for defined product
+  command: /usr/bin/subscription-manager list --all --available --matches="*{{ rhn_product }}*" --pool-only | head -1
   register: pool_id
-  ignore_errors: yes
   changed_when: false
+  failed_when: false
+  tags:
+    - test
 
-# If we're unable to find a product pool ID, see if one is already consumed
-- name: registration | If finding an available pool is not found - check to see if an existing pool ID is already attached.
-  command: subscription-manager list --consumed  --pool-only | head -1
+- name: registration | Check if rhn_pool_id is statically defined
+  set_fact:
+    rhn_static_pool_id: true
+  when:
+    - rhn_pool_id is defined
+    - rhn_pool_id != ""
+  tags:
+    - test
+
+- name: registration | Set the Pool ID if not statically defined
+  set_fact:
+    rhn_pool_id: "{{ pool_id.stdout }}"
+  when:
+    - rhn_static_pool_id is undefined
+  tags:
+    - test
+
+- name: registration | Determining if a pool is already consumed for defined product
+  command: /usr/bin/subscription-manager list --consumed --matches="*{{ rhn_product }}*" --pool-only
   register: pool_id_attached
-  ignore_errors: yes
   changed_when: false
-  when: pool_id is undefined 
+  failed_when: false
 
-# Fail the playbook if we're unable to find either an available pool_id
-# or a consumed id.
-- name: registration | Fail playbook if no Pool IDs are available and if none are consumed
+- name: registration | List of Consumed Pool IDs
+  debug:
+    msg: "The following pools are already being consumed: {{ pool_id_attached.stdout_lines }}"
+  when: pool_id_attached.stdout != ''
+
+- name: registration | If no pools are consumed or available, fail the playbook
   fail:
-    msg: "Unable to find a matching Pool ID in available or consumed pools"
-  when: pool_id is undefined and pool_id_attached is undefined
+    msg: "Either Pool ID was not defined or a new one could not be located"
+  when:
+    - static_pool_id is undefined
+    - pool_id.stdout == ''
+    - pool_id_attached.stdout_lines == ''
 
-- debug:
-    msg: "The Pool ID being attached is {{ pool_id.stdout }}"
-  when: pool_id is defined
-
-- debug:
-    msg: "The machine is already subscribed. The Pool ID being used is {{ pool_id_attached.stdout }} ."
-  when: pool_id is undefined and pool_id_attached is defined 
-
-#Attaching the system to the right pool once we've made it past the above checks
 - name: registration | Attach machine with RHN Pool ID
-  command: /usr/bin/subscription-manager attach --pool={{ pool_id.stdout }}
-  ignore_errors: no 
-  register: task_result
-  until: task_result.rc == 0
+  command: /usr/bin/subscription-manager attach --pool={{ rhn_pool_id }}
+  ignore_errors: no
+  register: attach_result
+  until: attach_result | succeeded
   retries: 10
   delay: 1
-  when: pool_id is defined
+  failed_when: false
+  when:
+    - (pool_id.stdout != '' and pool_id_attached == '') or (rhn_static_pool_id is defined and rhn_pool_id not in pool_id_attached.stdout_lines)

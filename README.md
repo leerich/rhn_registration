@@ -10,15 +10,13 @@ Red Hat account with the appropriate entitlements for desired red hat products
 
 Role Variables
 --------------
-
-rhn_user
-- The user account you want to use when registering to RHN
-
-rhn_password
-- Password you would like to use. I'd recommend stashing this in a vault file.
-
-rhn_product
-- The product you would like to register (i.e. OpenShift, Satellite, Red Hat Enterprise Linux, etc)
+| variable                 | required | default | choices | comments                                            |
+|--------------------------|----------|---------|---------|-----------------------------------------------------|
+| rhn_user               | yes        | undefined        |         | User account to use for RHN  |
+| rhn_password           | yes        | undefined        |         | User password to use for RHN |
+| rhn_product            | yes        | undefined        |         | Product name to search for |
+| rhn_subscription_clean | no         | false   | true/false        | Use this if you want to clean out all existing subscriptions on each run |
+| rhn_pool_id            | no         | undefined |         | Define if you want to use a static Pool Id instead of searching for available pools |
 
 Dependencies
 ------------
