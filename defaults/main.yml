@@ -17,3 +17,10 @@ rhn_subscription_clean: false
 # override any dynamic searching and add to any existing machines, regardless
 # of if there are already attached Pool IDs
 rhn_pool_id: ''
+
+# /etc/rhsm/rhsm.conf settings
+rhsub_rhsm_port: 443
+# rhsub_rhsm_proxy_hostname: ""
+# rhsub_rhsm_proxy_port: ""
+# rhsub_rhsm_proxy_user: ""
+# rhsub_rhsm_proxy_password: ""

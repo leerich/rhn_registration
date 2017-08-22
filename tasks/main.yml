@@ -1,17 +1,25 @@
 ---
 # tasks file for rhn_registration
 
-- name: registration | Check if user is using RHEL
+- name: rhn_registration | main | Check if user is using RHEL
   assert:
     that: "ansible_distribution == 'RedHat'"
+    
+- name: rhn_registration | main | Configure Red Hat subscirption manager
+  template:
+    src: rhsm.conf.j2
+    dest: /etc/rhsm/rhsm.conf
+    owner: root
+    group: root
+    mode: 0644
 
-- name: registration | Clean out all valid RHN subscriptions
+- name: rhn_registration | main | Clean out all valid RHN subscriptions
   command: /usr/bin/subscription-manager clean
   when:
     - rhn_subscription_clean is defined
     - rhn_subscription_clean
 
-- name: registration | Register the machine with RHN
+- name: rhn_registration | main | Register the machine with RHN
   redhat_subscription:
     username: "{{ rhn_user }}"
     password: "{{ rhn_password }}"
