@@ -26,8 +26,6 @@
   register: pool_id
   changed_when: false
   failed_when: false
-  tags:
-    - test
 
 - name: registration | Check if rhn_pool_id is statically defined
   set_fact:
@@ -35,16 +33,12 @@
   when:
     - rhn_pool_id is defined
     - rhn_pool_id != ""
-  tags:
-    - test
 
 - name: registration | Set the Pool ID if not statically defined
   set_fact:
     rhn_pool_id: "{{ pool_id.stdout }}"
   when:
     - rhn_static_pool_id is undefined
-  tags:
-    - test
 
 - name: registration | Determining if a pool is already consumed for defined product
   command: /usr/bin/subscription-manager list --consumed --matches="*{{ rhn_product }}*" --pool-only
