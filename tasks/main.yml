@@ -23,7 +23,7 @@
   redhat_subscription:
     username: "{{ rhn_user }}"
     password: "{{ rhn_password }}"
-    autosubscribe: false
+    autosubscribe: true
   register: subscription_result
   until: subscription_result | succeeded
   retries: 10
